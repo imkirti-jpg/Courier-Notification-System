@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db import get_db
+from app.db.db import get_db
 from app.schemas.notifications import NotificationCreate, NotificationResponse
 from app.services import notifications_service
 from app.api.dependency import get_current_user
 from app.models.auth import User
 import uuid
+from app.workers.tasks import send_notification 
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
@@ -22,7 +23,7 @@ async def create_notification(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-    # Phase 4 will add: send_notification.delay(str(notification.id))
+    send_notification.delay(str(notification.id))
 
     return notification
 

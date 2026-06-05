@@ -1,6 +1,6 @@
 from logging.config import fileConfig
 
-from app.db import Base
+from app.db.db import Base
 from app.models.auth import User
 from app.models.templates import Template
 from app.models.notifications import Notification
@@ -14,6 +14,12 @@ from alembic import context
 # access to the values within the .ini file in use.
 config = context.config
 
+from app.core.configure import settings
+
+config.set_main_option(
+    "sqlalchemy.url",
+    settings.CELERY_DATABASE_URL
+)
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
@@ -23,7 +29,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from app.db import Base
+from app.db.db import Base
 
 target_metadata = Base.metadata
 

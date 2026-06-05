@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select   
-from app.db import AsyncSession, get_db
+from app.db.db import AsyncSession, get_db
 from app.models.auth import User
 from app.schemas.auth import UserResponse , Token , UserLogin , UserRegister
 from app.core.security import hash_password, verify_password, create_access_token
@@ -17,7 +17,7 @@ async def register(payload: UserRegister, db: AsyncSession = Depends(get_db)):
     existing_user = result.scalar_one_or_none()
     if existing_user: 
         raise HTTPException( status_code=400, detail="Email already registered" ) 
-    user = User(email=payload.email, hashed_password=hash_password(payload.password)) 
+    user = User(name=payload.name,email=payload.email, hashed_password=hash_password(payload.password)) 
     db.add(user) 
     await db.commit() 
     await db.refresh(user) 

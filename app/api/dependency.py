@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy import select
-from app.db import AsyncSession, get_db
+from app.db.db import AsyncSession, get_db
 from app.models.auth import User
 from app.core.configure import settings
 

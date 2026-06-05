@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db import get_db
+from app.db.db import get_db
 from app.schemas.templates import TemplateCreate, TemplateUpdate, TemplateResponse
 from app.services import template as template_service
 
