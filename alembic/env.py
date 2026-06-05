@@ -3,6 +3,7 @@ from logging.config import fileConfig
 from app.db import Base
 from app.models.auth import User
 from app.models.templates import Template
+from app.models.notifications import Notification
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
