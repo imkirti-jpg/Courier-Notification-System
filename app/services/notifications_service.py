@@ -35,3 +35,10 @@ async def get_notification(db: AsyncSession, notification_id: uuid.UUID):
         select(Notification).where(Notification.id == notification_id)
     )
     return result.scalar_one_or_none()
+
+
+async def get_notifications(db: AsyncSession, user_id: uuid.UUID):
+    result = await db.execute(
+        select(Notification).where(Notification.user_id == user_id)
+    )
+    return result.scalars().all()
