@@ -4,6 +4,7 @@ from app.db.db import Base
 from app.models.auth import User
 from app.models.templates import Template
 from app.models.notifications import Notification
+from app.models.dead_letter import DeadLetterJob
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool

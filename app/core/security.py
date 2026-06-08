@@ -4,6 +4,10 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta , timezone
 from typing import Optional
 from fastapi import HTTPException, status
+from fastapi import Depends, HTTPException
+from app.models.auth import User
+from app.api.dependency import get_current_user
+
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -46,4 +50,13 @@ def decode_access_token(token: str):
 
 
 
+async def get_current_admin_user(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="Admin access required"
+        )
+    return current_user
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.db import get_db
 from app.schemas.notifications import NotificationCreate, NotificationResponse
@@ -7,11 +7,14 @@ from app.api.dependency import get_current_user
 from app.models.auth import User
 import uuid
 from app.workers.tasks import send_notification 
+from app.core.rate_limit import limiter
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
+@limiter.limit("100/minute")
 @router.post("/", response_model=NotificationResponse, status_code=202)
 async def create_notification(
+    request: Request,
     data: NotificationCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)

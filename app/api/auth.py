@@ -6,8 +6,8 @@ from app.models.auth import User
 from app.schemas.auth import UserResponse , Token , UserLogin , UserRegister
 from app.core.security import hash_password, verify_password, create_access_token
 from app.api.dependency import get_current_user
-
-
+from app.core.rate_limit import limiter
+from fastapi import Request
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -23,8 +23,9 @@ async def register(payload: UserRegister, db: AsyncSession = Depends(get_db)):
     await db.refresh(user) 
     return user
 
+@limiter.limit("100/minute")
 @router.post("/login", response_model=Token)
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
+async def login(request: Request,form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == form_data.username))
     user = result.scalar_one_or_none()
     if not user or not verify_password(form_data.password, user.hashed_password):

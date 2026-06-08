@@ -5,16 +5,17 @@ from app.models.notifications import Notification
 from app.models.templates import Template
 from app.models.enums import NotificationStatus
 from app.utils.template_renderer import render_template
+from app.services.dead_letter_service import create_dead_letter_sync
 from app.services.email_service import send_email
 from app.core.logging import get_logger
 import uuid
 
 logger = get_logger(__name__)
 
-RETRY_DELAYS = [60, 120, 300, 900, 1800]   # seconds: 1m, 2m, 5m, 15m, 30m
+RETRY_DELAYS = [60, 120]   # seconds: 1m, 2m, 5m, 15m, 30m
 
 
-@celery_app.task(bind=True, max_retries=5, name="send_notification")
+@celery_app.task(bind=True, max_retries=2, name="send_notification")
 def send_notification(self, notification_id: str):
     db = SyncSessionLocal()
     notification = None
@@ -69,14 +70,20 @@ def send_notification(self, notification_id: str):
         db.rollback()
         current_attempt = self.request.retries   # 0 on first failure
 
+
+# Update the call site in send_notification:
         if current_attempt < self.max_retries:
             _handle_retry(self, db, notification, notification_id, exc, current_attempt)
         else:
-            _handle_final_failure(db, notification, notification_id, exc)
-
+            _handle_final_failure(
+                db,
+                notification,
+                notification_id,
+                exc,
+                attempt_count=self.max_retries + 1  # 1 original + 5 retries = 6
+            )
     finally:
         db.close()
-
 
 def _handle_retry(task, db, notification, notification_id, exc, attempt):
     countdown = RETRY_DELAYS[min(attempt, len(RETRY_DELAYS) - 1)]
@@ -99,7 +106,8 @@ def _handle_retry(task, db, notification, notification_id, exc, attempt):
     raise task.retry(exc=exc, countdown=countdown)
 
 
-def _handle_final_failure(db, notification, notification_id, exc):
+
+def _handle_final_failure(db, notification, notification_id, exc, attempt_count):
     if notification:
         try:
             notification.status = NotificationStatus.FAILED
@@ -107,11 +115,21 @@ def _handle_final_failure(db, notification, notification_id, exc):
         except Exception:
             db.rollback()
 
+        try:
+            create_dead_letter_sync(
+                db=db,
+                notification=notification,
+                error_message=str(exc),
+                attempt_count=attempt_count
+            )
+        except Exception as dlq_exc:
+            db.rollback()
+            logger.error(
+                f"dead_letter_insert_failed | id={notification_id} error={dlq_exc}"
+            )
+
     logger.error(
         f"final_failure | id={notification_id} "
-        f"attempts=6 "            # 1 initial + 5 retries
+        f"attempts={attempt_count} "
         f"error={exc}"
     )
-
-    # Phase 8 wires this up:
-    # dead_letter_service.create(db, notification, exc)

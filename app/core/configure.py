@@ -9,7 +9,7 @@ class Setting(BaseSettings):
     CELERY_DATABASE_URL: str 
 
 
-    SMTP_HOST: str = "mailhog"
+    SMTP_HOST: str = "mailhog"  
     SMTP_PORT: int = 1025
     SMTP_USERNAME: str = ""
     SMTP_PASSWORD: str = ""
