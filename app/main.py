@@ -4,6 +4,8 @@ from app.api import auth
 from app.api.templates import router as templates_router
 from app.api.notifications import router as notifications_router
 from app.api.admin import router as admin_router
+from app.api.analytics import router as analytics_router
+from app.api.health import router as health_router
 
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -24,6 +26,8 @@ app.include_router(auth.router)
 app.include_router(templates_router)
 app.include_router(notifications_router)
 app.include_router(admin_router)
+app.include_router(analytics_router)
+app.include_router(health_router)
 
 
 

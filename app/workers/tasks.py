@@ -92,6 +92,7 @@ def _handle_retry(task, db, notification, notification_id, exc, attempt):
     if notification:
         try:
             notification.status = NotificationStatus.RETRYING
+            notification.retry_count += 1 
             db.commit()
         except Exception:
             db.rollback()

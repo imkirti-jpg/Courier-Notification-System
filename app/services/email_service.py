@@ -17,10 +17,12 @@ def send_email_smtp(to: str, subject: str, html_body: str) -> None:
     msg.attach(MIMEText(html_body, "html"))
 
     with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as smtp:
+        smtp.starttls()
         # Only authenticate if credentials are provided
         # Mailhog needs no auth; real SMTP providers do
         if settings.SMTP_USERNAME and settings.SMTP_PASSWORD:
             smtp.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+        print(f"Sending email to {to}")
 
         smtp.sendmail(settings.EMAIL_FROM, to, msg.as_string())
 
