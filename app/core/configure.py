@@ -13,7 +13,7 @@ class Setting(BaseSettings):
     SMTP_PORT: int = 1025
     SMTP_USERNAME: str = ""
     SMTP_PASSWORD: str = ""
-    EMAIL_FROM: str = "noreply@notifications.com"
+    EMAIL_FROM: str 
 
     # Production only — leave empty for local dev
     SENDGRID_API_KEY: str = ""

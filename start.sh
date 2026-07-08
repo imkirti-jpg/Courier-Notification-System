@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/sh
+set -e
 
-# 1. Run database migrations automatically on boot
 echo "Executing database migrations..."
 alembic upgrade head
 
