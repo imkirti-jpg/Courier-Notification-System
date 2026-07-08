@@ -13,3 +13,12 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
+
+# Grant execute permissions to our startup manager script
+RUN chmod +x start.sh
+
+# Let Render bind to the port dynamically
+EXPOSE 8000
+
+# Execute the script that kicks off migrations, celery, and uvicorn
+CMD ["./start.sh"]
